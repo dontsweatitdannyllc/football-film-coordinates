@@ -165,6 +165,33 @@ play_coordinates.json
 
 ---
 
+# Visualizing the Play
+
+You can render the JSON output as a **top‑down animation of the play** using OpenCV.
+
+Run:
+
+python visualize_play.py
+
+This will:
+
+• read `play_coordinates.json`
+• render players as dots on a 120 x 53.3 yard field
+• play the animation frame‑by‑frame
+• export a video file `play_visualization.mp4`
+
+Example output:
+
+A top‑down animation similar to **NFL Next Gen Stats tracking dots**.
+
+This is useful for:
+
+• validating tracking accuracy
+• debugging homography calibration
+• visualizing player movement
+
+---
+
 # Directory Structure
 
 film_pipeline/
