@@ -67,10 +67,37 @@ for idx,i in enumerate(sample_ids):
     boxes = []
 
     if res.boxes is not None:
+        height, width = frame.shape[:2]
+
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        lower_green = (35, 40, 40)
+        upper_green = (90, 255, 255)
+        grass_mask = cv2.inRange(hsv, lower_green, upper_green)
+
         for b,c in zip(res.boxes.xyxy, res.boxes.conf):
             x1,y1,x2,y2 = b
             cx = float((x1+x2)/2)
             cy = float((y1+y2)/2)
+
+            # vertical band filter (ignore sideline zones)
+            if cy < height * 0.15 or cy > height * 0.85:
+                continue
+
+            # horizontal edge filter
+            if cx < width * 0.05 or cx > width * 0.95:
+                continue
+
+            # bounding box size filter
+            area = (x2-x1) * (y2-y1)
+            if area > width * height * 0.05:
+                continue
+
+            # grass filter
+            gx = int(cx)
+            gy = int(cy)
+            if grass_mask[gy, gx] == 0:
+                continue
+
             boxes.append((float(c), cx, cy))
 
     # fallback pass if not enough
@@ -86,6 +113,8 @@ for idx,i in enumerate(sample_ids):
 
     boxes.sort(reverse=True, key=lambda x: x[0])
 
+    # expand candidate pool then select best 22
+    boxes = boxes[:50]
     boxes = boxes[:22]
 
     frame_players = []
