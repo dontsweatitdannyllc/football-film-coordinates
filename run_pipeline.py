@@ -18,14 +18,14 @@ subprocess.run(['ffmpeg','-y','-i',video,'-vf',f'fps={fps},format=yuv420p',sampl
 print("[2/5] Extracting calibration frame...")
 subprocess.run(['ffmpeg','-y','-i',sampled,'-vframes','1','calibration_frame.jpg'])
 
-print("[3/5] Running tracking...")
-subprocess.run(['python','track.py','--input',sampled])
+print("[3/5] Detecting players on sampled frames...")
+subprocess.run(['python','detect_frames.py','--input',sampled])
 
 print("[4/5] Calibration step (click 4 field points)...")
 subprocess.run(['python','calibrate.py'])
 
 print("[5/5] Projecting coordinates + exporting JSON...")
-subprocess.run(['python','project.py'])
+subprocess.run(['python','project.py','--tracks','tracks_raw.json'])
 subprocess.run(['python','export_json.py'])
 
 print("Pipeline complete. Output: play_coordinates.json")

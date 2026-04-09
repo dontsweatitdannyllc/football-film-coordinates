@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--tracks', default='tracks_raw.json')
+parser.add_argument('--tracks', default='tracks_raw.json', help='Input detection file')
 parser.add_argument('--homography', default='homography.json')
 parser.add_argument('--out', default='projected_tracks.json')
 args = parser.parse_args()
