@@ -15,7 +15,40 @@ if not cap.isOpened():
 
 frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-sample_ids = [0, frame_count//2, int(frame_count*0.75)]
+# detect pre-snap frame using motion analysis
+prev_gray = None
+motion_scores = []
+
+for i in range(frame_count):
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    if prev_gray is None:
+        prev_gray = gray
+        motion_scores.append(999999)
+        continue
+
+    diff = cv2.absdiff(prev_gray, gray)
+    score = diff.mean()
+
+    motion_scores.append(score)
+
+    prev_gray = gray
+
+# find frame with lowest motion (pre-snap)
+presnap_frame = motion_scores.index(min(motion_scores))
+
+# sample around pre-snap
+sample_ids = [
+    max(presnap_frame - 2, 0),
+    presnap_frame,
+    min(presnap_frame + 2, frame_count-1)
+]
+
+cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
 model = YOLO('yolov8s.pt')
 
