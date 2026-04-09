@@ -1,23 +1,41 @@
-import cv2,json,numpy as np
+import argparse, json
+import numpy as np
+import cv2
 
-tracks=json.load(open('tracks_raw.json'))
-h=json.load(open('homography.json'))
+parser = argparse.ArgumentParser()
+parser.add_argument('--tracks', default='tracks_raw.json')
+parser.add_argument('--homography', default='homography.json')
+parser.add_argument('--out', default='projected_tracks.json')
+args = parser.parse_args()
 
-src=np.array(h['pixels'],dtype='float32')
-dst=np.array(h['field'],dtype='float32')
+tracks = json.load(open(args.tracks))
+h = json.load(open(args.homography))
 
-H,_=cv2.findHomography(src,dst)
+src = np.array(h['pixels'], dtype='float32')
+dst = np.array(h['field'], dtype='float32')
 
-proj={}
+if src.shape != (4, 2) or dst.shape != (4, 2):
+    raise SystemExit('homography.json must contain exactly 4 pixel points and 4 field points')
 
-for f,players in tracks.items():
- out=[]
- for p in players:
-  pt=np.array([[p['cx'],p['cy']]],dtype='float32')
-  pt=np.array([pt])
-  mapped=cv2.perspectiveTransform(pt,H)[0][0]
-  out.append({'player_id':p['id'],'x':float(mapped[0]),'y':float(mapped[1])})
- proj[f]=out
+H, _ = cv2.findHomography(src, dst)
+if H is None:
+    raise SystemExit('Could not compute homography (check point ordering / collinearity)')
 
-json.dump(proj,open('projected_tracks.json','w'))
-print('projection complete')
+proj = {}
+
+for f, players in tracks.items():
+    out_players = []
+    for p in players:
+        pt = np.array([[[p['cx'], p['cy']]]], dtype='float32')
+        mapped = cv2.perspectiveTransform(pt, H)[0][0]
+        out_players.append({
+            'player_id': int(p.get('player_id', p.get('id', -1))),
+            'x': float(mapped[0]),
+            'y': float(mapped[1]),
+        })
+    proj[f] = out_players
+
+with open(args.out, 'w') as f:
+    json.dump(proj, f)
+
+print(f"Projection complete. Wrote {args.out}")

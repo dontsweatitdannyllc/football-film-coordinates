@@ -1,0 +1,17 @@
+# large media
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# generated artifacts
+calibration_frame.jpg
+tracks_raw.json
+projected_tracks.json
+play_coordinates.json
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
